@@ -1,0 +1,384 @@
+2026-01-24 15:33:09 - DataProcessingPipeline - INFO - Построение пайплайна обработки данных
+2026-01-24 15:33:09 - DataProcessingPipeline - INFO - Пайплайн построен успешно
+2026-01-24 15:33:09 - DataProcessingPipeline - INFO - Начало обработки данных, размер: (52131, 12)
+2026-01-24 15:33:09 - SexExtractor - INFO - Извлечение пола из столбца Пол, возраст
+2026-01-24 15:33:10 - SexExtractor - INFO - Извлечено 52131 значений пола
+2026-01-24 15:33:10 - AgeExtractor - INFO - Извлечение возраста из столбца Пол, возраст
+2026-01-24 15:33:10 - AgeExtractor - INFO - Извлечено 50234 значений возраста
+2026-01-24 15:33:10 - IQRFilter - INFO - Фильтрация выбросов в столбце age
+2026-01-24 15:33:11 - IQRFilter - INFO - Удалено 1910 выбросов (было 52131, стало 50221)
+2026-01-24 15:33:11 - SalaryExtractor - INFO - Извлечение зарплаты из столбца ЗП
+2026-01-24 15:33:52 - SalaryExtractor - INFO - Извлечено 50221 значений зарплаты
+2026-01-24 15:33:52 - PositionExtractor - INFO - Извлечение должности из столбца Ищет работу на должность:
+2026-01-24 15:33:54 - PositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Системный администратор: 5729
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Инженер: 14833
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Аналитик: 2456
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Менеджер: 12843
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Специалист технической поддержки: 1200
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Программист: 6469
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Тестировщик: 602
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Маркетолог: 536
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Дизайнер: 1012
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Монтажник: 779
+2026-01-24 15:33:54 - PositionExtractor - INFO -   Другая: 5622
+2026-01-24 15:33:56 - LastPositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Системный администратор: 3096
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Инженер: 16851
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Аналитик: 1362
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Менеджер: 12676
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Специалист технической поддержки: 1038
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Программист: 4156
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Тестировщик: 278
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Маркетолог: 408
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Дизайнер: 792
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Монтажник: 662
+2026-01-24 15:33:56 - LastPositionExtractor - INFO -   Другая: 10809
+2026-01-24 15:33:56 - CityExtractor - INFO - Извлечение информации о городе из столбца Город
+2026-01-24 15:33:59 - CityExtractor - INFO - Статистика по городам (топ-10):
+2026-01-24 15:33:59 - CityExtractor - INFO -   Москва: 22613
+2026-01-24 15:33:59 - CityExtractor - INFO -   Другой город: 15251
+2026-01-24 15:33:59 - CityExtractor - INFO -   Санкт-Петербург: 5398
+2026-01-24 15:33:59 - CityExtractor - INFO -   Краснодар: 1166
+2026-01-24 15:33:59 - CityExtractor - INFO -   Новосибирск: 980
+2026-01-24 15:33:59 - CityExtractor - INFO -   Казань: 889
+2026-01-24 15:33:59 - CityExtractor - INFO -   Екатеринбург: 748
+2026-01-24 15:33:59 - CityExtractor - INFO -   Самара: 694
+2026-01-24 15:33:59 - CityExtractor - INFO -   Ростов-на-Дону: 587
+2026-01-24 15:33:59 - CityExtractor - INFO -   Нижний Новгород: 578
+2026-01-24 15:33:59 - CityExtractor - INFO - Переезд: {'да': 18244, 'нет': 31977, 'не указано': 1910}
+2026-01-24 15:33:59 - CityExtractor - INFO - Командировки: {'да': 34920, 'нет': 14923, 'не указано': 2288}
+2026-01-24 15:33:59 - EmploymentExtractor - INFO - Извлечение информации о занятости из столбца Занятость
+2026-01-24 15:34:00 - EmploymentExtractor - INFO - Создано 5 бинарных столбцов занятости: ['full time', 'part time', 'project work', 'volunteering', 'work placement']
+2026-01-24 15:34:00 - ScheduleExtractor - INFO - Извлечение информации о графике работы из столбца График
+2026-01-24 15:34:01 - ScheduleExtractor - INFO - Создано 5 бинарных столбцов графика: ['flexible schedule', 'full day', 'remote working', 'rotation based work', 'shift schedule']
+2026-01-24 15:34:02 - ExperienceExtractor - INFO - Извлечение опыта работы из столбца Опыт (двойное нажатие для полной версии)
+2026-01-24 15:34:06 - ExperienceExtractor - INFO - Извлечено 48612 значений опыта работы
+2026-01-24 15:34:06 - ExperienceExtractor - INFO - Средний опыт: 121.0 месяцев
+2026-01-24 15:34:06 - IQRFilter - INFO - Фильтрация выбросов в столбце experience
+2026-01-24 15:34:06 - IQRFilter - INFO - Удалено 56 выбросов (было 52131, стало 52075)
+2026-01-24 15:34:06 - EducationExtractor - INFO - Извлечение уровня образования из столбца Образование и ВУЗ
+2026-01-24 15:34:10 - EducationExtractor - INFO - Статистика образования: {'Высшее': 34226, 'Другое': 15940, 'Не указано': 1909}
+2026-01-24 15:34:10 - ColumnCleaner - INFO - Очистка столбцов
+2026-01-24 15:34:10 - ColumnCleaner - WARNING - Удалено 4240 строк с пропущенными значениями
+2026-01-24 15:34:10 - ColumnCleaner - INFO - Очистка завершена:
+2026-01-24 15:34:10 - ColumnCleaner - INFO -   Исходные размеры: 52131 строк, 34 столбцов
+2026-01-24 15:34:10 - ColumnCleaner - INFO -   Конечные размеры: 47891 строк, 20 столбцов
+2026-01-24 15:34:10 - ColumnCleaner - INFO -   Удалено столбцов: 14
+2026-01-24 15:34:10 - DataPreparer - INFO - Подготовка данных для машинного обучения
+2026-01-24 15:34:10 - DataPreparer - INFO - Целевая переменная (salary):
+2026-01-24 15:34:10 - DataPreparer - INFO -   Размер: (47891,)
+2026-01-24 15:34:10 - DataPreparer - INFO -   Среднее: 82903.79
+2026-01-24 15:34:10 - DataPreparer - INFO -   Медиана: 60000.00
+2026-01-24 15:34:10 - DataPreparer - INFO -   Стандартное отклонение: 179833.44
+2026-01-24 15:34:10 - DataPreparer - INFO - Матрица признаков X:
+2026-01-24 15:34:10 - DataPreparer - INFO -   Размер: (47891, 61)
+2026-01-24 15:34:10 - DataPreparer - INFO -   Количество признаков: 61
+2026-01-24 15:34:10 - DataPreparer - INFO -   Тип данных: age                     Int64
+full time             float64
+part time             float64
+project work          float64
+volunteering          float64
+                       ...   
+relocation_нет           bool
+business trips_да        bool
+business trips_нет       bool
+education_Высшее         bool
+education_Другое         bool
+Length: 61, dtype: object
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO - Обработка данных завершена успешно
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO - Начало полной обработки и сохранения данных
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO - Пути сохранения: X -> X_data.npy, y -> y_data.npy
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO - Данные успешно сохранены:
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO -   X_data shape: (47891, 61)
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO -   y_data shape: (47891,)
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO -   X сохранен в: X_data.npy
+2026-01-24 15:34:10 - DataProcessingPipeline - INFO -   y сохранен в: y_data.npy
+2026-01-24 16:01:50 - DataProcessingPipeline - INFO - Построение пайплайна обработки данных
+2026-01-24 16:01:50 - DataProcessingPipeline - INFO - Пайплайн построен успешно
+2026-01-24 16:01:50 - DataProcessingPipeline - INFO - Начало обработки данных, размер: (52131, 12)
+2026-01-24 16:01:50 - SexExtractor - INFO - Извлечение пола из столбца Пол, возраст
+2026-01-24 16:01:52 - SexExtractor - INFO - Извлечено 52131 значений пола
+2026-01-24 16:01:52 - AgeExtractor - INFO - Извлечение возраста из столбца Пол, возраст
+2026-01-24 16:01:53 - AgeExtractor - INFO - Извлечено 50234 значений возраста
+2026-01-24 16:01:53 - IQRFilter - INFO - Фильтрация выбросов в столбце age
+2026-01-24 16:01:53 - IQRFilter - INFO - Удалено 1910 выбросов (было 52131, стало 50221)
+2026-01-24 16:01:53 - SalaryExtractor - INFO - Извлечение зарплаты из столбца ЗП
+2026-01-24 16:02:35 - SalaryExtractor - INFO - Извлечено 50221 значений зарплаты
+2026-01-24 16:02:35 - PositionExtractor - INFO - Извлечение должности из столбца Ищет работу на должность:
+2026-01-24 16:02:37 - PositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Системный администратор: 5729
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Инженер: 14833
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Аналитик: 2456
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Менеджер: 12843
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Специалист технической поддержки: 1200
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Программист: 6469
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Тестировщик: 602
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Маркетолог: 536
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Дизайнер: 1012
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Монтажник: 779
+2026-01-24 16:02:37 - PositionExtractor - INFO -   Другая: 5622
+2026-01-24 16:02:39 - LastPositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Системный администратор: 3096
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Инженер: 16851
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Аналитик: 1362
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Менеджер: 12676
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Специалист технической поддержки: 1038
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Программист: 4156
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Тестировщик: 278
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Маркетолог: 408
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Дизайнер: 792
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Монтажник: 662
+2026-01-24 16:02:39 - LastPositionExtractor - INFO -   Другая: 10809
+2026-01-24 16:02:39 - CityExtractor - INFO - Извлечение информации о городе из столбца Город
+2026-01-24 16:02:42 - CityExtractor - INFO - Статистика по городам (топ-10):
+2026-01-24 16:02:42 - CityExtractor - INFO -   Москва: 22613
+2026-01-24 16:02:42 - CityExtractor - INFO -   Другой город: 15251
+2026-01-24 16:02:42 - CityExtractor - INFO -   Санкт-Петербург: 5398
+2026-01-24 16:02:42 - CityExtractor - INFO -   Краснодар: 1166
+2026-01-24 16:02:42 - CityExtractor - INFO -   Новосибирск: 980
+2026-01-24 16:02:42 - CityExtractor - INFO -   Казань: 889
+2026-01-24 16:02:42 - CityExtractor - INFO -   Екатеринбург: 748
+2026-01-24 16:02:42 - CityExtractor - INFO -   Самара: 694
+2026-01-24 16:02:42 - CityExtractor - INFO -   Ростов-на-Дону: 587
+2026-01-24 16:02:42 - CityExtractor - INFO -   Нижний Новгород: 578
+2026-01-24 16:02:42 - CityExtractor - INFO - Переезд: {'да': 18244, 'нет': 31977, 'не указано': 1910}
+2026-01-24 16:02:42 - CityExtractor - INFO - Командировки: {'да': 34920, 'нет': 14923, 'не указано': 2288}
+2026-01-24 16:02:42 - EmploymentExtractor - INFO - Извлечение информации о занятости из столбца Занятость
+2026-01-24 16:02:43 - EmploymentExtractor - INFO - Создано 5 бинарных столбцов занятости: ['full time', 'part time', 'project work', 'volunteering', 'work placement']
+2026-01-24 16:02:43 - ScheduleExtractor - INFO - Извлечение информации о графике работы из столбца График
+2026-01-24 16:02:44 - ScheduleExtractor - INFO - Создано 5 бинарных столбцов графика: ['flexible schedule', 'full day', 'remote working', 'rotation based work', 'shift schedule']
+2026-01-24 16:02:44 - ExperienceExtractor - INFO - Извлечение опыта работы из столбца Опыт (двойное нажатие для полной версии)
+2026-01-24 16:02:50 - ExperienceExtractor - INFO - Извлечено 48612 значений опыта работы
+2026-01-24 16:02:50 - ExperienceExtractor - INFO - Средний опыт: 121.0 месяцев
+2026-01-24 16:02:50 - IQRFilter - INFO - Фильтрация выбросов в столбце experience
+2026-01-24 16:02:50 - IQRFilter - INFO - Удалено 56 выбросов (было 52131, стало 52075)
+2026-01-24 16:02:50 - EducationExtractor - INFO - Извлечение уровня образования из столбца Образование и ВУЗ
+2026-01-24 16:02:53 - EducationExtractor - INFO - Статистика образования: {'Высшее': 34226, 'Другое': 15940, 'Не указано': 1909}
+2026-01-24 16:02:53 - ColumnCleaner - INFO - Очистка столбцов
+2026-01-24 16:02:53 - ColumnCleaner - WARNING - Удалено 4240 строк с пропущенными значениями
+2026-01-24 16:02:53 - ColumnCleaner - INFO - Очистка завершена:
+2026-01-24 16:02:53 - ColumnCleaner - INFO -   Исходные размеры: 52131 строк, 34 столбцов
+2026-01-24 16:02:53 - ColumnCleaner - INFO -   Конечные размеры: 47891 строк, 20 столбцов
+2026-01-24 16:02:53 - ColumnCleaner - INFO -   Удалено столбцов: 14
+2026-01-24 16:02:53 - DataPreparer - INFO - Подготовка данных для машинного обучения
+2026-01-24 16:02:53 - DataPreparer - INFO - Целевая переменная (salary):
+2026-01-24 16:02:53 - DataPreparer - INFO -   Размер: (47891,)
+2026-01-24 16:02:53 - DataPreparer - INFO -   Среднее: 81194.72
+2026-01-24 16:02:53 - DataPreparer - INFO -   Медиана: 60000.00
+2026-01-24 16:02:53 - DataPreparer - INFO -   Стандартное отклонение: 136236.24
+2026-01-24 16:02:53 - DataPreparer - INFO - Матрица признаков X:
+2026-01-24 16:02:53 - DataPreparer - INFO -   Размер: (47891, 61)
+2026-01-24 16:02:53 - DataPreparer - INFO -   Количество признаков: 61
+2026-01-24 16:02:53 - DataPreparer - INFO -   Тип данных: age                     Int64
+full time             float64
+part time             float64
+project work          float64
+volunteering          float64
+                       ...   
+relocation_нет           bool
+business trips_да        bool
+business trips_нет       bool
+education_Высшее         bool
+education_Другое         bool
+Length: 61, dtype: object
+2026-01-24 16:02:53 - DataProcessingPipeline - INFO - Обработка данных завершена успешно
+2026-01-24 16:02:53 - DataProcessingPipeline - INFO - Начало полной обработки и сохранения данных
+2026-01-24 16:02:53 - DataProcessingPipeline - INFO - Пути сохранения: X -> X_data.npy, y -> y_data.npy
+2026-01-24 16:02:54 - DataProcessingPipeline - INFO - Данные успешно сохранены:
+2026-01-24 16:02:54 - DataProcessingPipeline - INFO -   X_data shape: (47891, 61)
+2026-01-24 16:02:54 - DataProcessingPipeline - INFO -   y_data shape: (47891,)
+2026-01-24 16:02:54 - DataProcessingPipeline - INFO -   X сохранен в: X_data.npy
+2026-01-24 16:02:54 - DataProcessingPipeline - INFO -   y сохранен в: y_data.npy
+2026-01-24 17:43:11 - DataProcessingPipeline - INFO - Построение пайплайна обработки данных
+2026-01-24 17:43:11 - DataProcessingPipeline - INFO - Пайплайн построен успешно
+2026-01-24 17:43:11 - DataProcessingPipeline - INFO - Начало обработки данных, размер: (52131, 12)
+2026-01-24 17:43:11 - SexExtractor - INFO - Извлечение пола из столбца Пол, возраст
+2026-01-24 17:43:12 - SexExtractor - INFO - Извлечено 52131 значений пола
+2026-01-24 17:43:12 - AgeExtractor - INFO - Извлечение возраста из столбца Пол, возраст
+2026-01-24 17:43:13 - AgeExtractor - INFO - Извлечено 50234 значений возраста
+2026-01-24 17:43:13 - IQRFilter - INFO - Фильтрация выбросов в столбце age
+2026-01-24 17:43:13 - IQRFilter - INFO - Удалено 1910 выбросов (было 52131, стало 50221)
+2026-01-24 17:43:13 - SalaryExtractor - INFO - Извлечение зарплаты из столбца ЗП
+2026-01-24 17:43:59 - SalaryExtractor - INFO - Извлечено 50221 значений зарплаты
+2026-01-24 17:43:59 - PositionExtractor - INFO - Извлечение должности из столбца Ищет работу на должность:
+2026-01-24 17:44:02 - PositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Системный администратор: 5729
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Инженер: 14833
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Аналитик: 2456
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Менеджер: 12843
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Специалист технической поддержки: 1200
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Программист: 6469
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Тестировщик: 602
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Маркетолог: 536
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Дизайнер: 1012
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Монтажник: 779
+2026-01-24 17:44:02 - PositionExtractor - INFO -   Другая: 5622
+2026-01-24 17:44:04 - LastPositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Системный администратор: 3096
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Инженер: 16851
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Аналитик: 1362
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Менеджер: 12676
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Специалист технической поддержки: 1038
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Программист: 4156
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Тестировщик: 278
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Маркетолог: 408
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Дизайнер: 792
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Монтажник: 662
+2026-01-24 17:44:04 - LastPositionExtractor - INFO -   Другая: 10809
+2026-01-24 17:44:04 - CityExtractor - INFO - Извлечение информации о городе из столбца Город
+2026-01-24 17:44:07 - CityExtractor - INFO - Статистика по городам (топ-10):
+2026-01-24 17:44:07 - CityExtractor - INFO -   Москва: 22613
+2026-01-24 17:44:07 - CityExtractor - INFO -   Другой город: 15251
+2026-01-24 17:44:07 - CityExtractor - INFO -   Санкт-Петербург: 5398
+2026-01-24 17:44:07 - CityExtractor - INFO -   Краснодар: 1166
+2026-01-24 17:44:07 - CityExtractor - INFO -   Новосибирск: 980
+2026-01-24 17:44:07 - CityExtractor - INFO -   Казань: 889
+2026-01-24 17:44:07 - CityExtractor - INFO -   Екатеринбург: 748
+2026-01-24 17:44:07 - CityExtractor - INFO -   Самара: 694
+2026-01-24 17:44:07 - CityExtractor - INFO -   Ростов-на-Дону: 587
+2026-01-24 17:44:07 - CityExtractor - INFO -   Нижний Новгород: 578
+2026-01-24 17:44:07 - CityExtractor - INFO - Переезд: {'да': 18244, 'нет': 31977, 'не указано': 1910}
+2026-01-24 17:44:07 - CityExtractor - INFO - Командировки: {'да': 34920, 'нет': 14923, 'не указано': 2288}
+2026-01-24 17:44:07 - EmploymentExtractor - INFO - Извлечение информации о занятости из столбца Занятость
+2026-01-24 17:44:08 - EmploymentExtractor - INFO - Создано 5 бинарных столбцов занятости: ['full time', 'part time', 'project work', 'volunteering', 'work placement']
+2026-01-24 17:44:08 - ScheduleExtractor - INFO - Извлечение информации о графике работы из столбца График
+2026-01-24 17:44:09 - ScheduleExtractor - INFO - Создано 5 бинарных столбцов графика: ['flexible schedule', 'full day', 'remote working', 'rotation based work', 'shift schedule']
+2026-01-24 17:44:09 - ExperienceExtractor - INFO - Извлечение опыта работы из столбца Опыт (двойное нажатие для полной версии)
+2026-01-24 17:44:16 - ExperienceExtractor - INFO - Извлечено 48612 значений опыта работы
+2026-01-24 17:44:16 - ExperienceExtractor - INFO - Средний опыт: 121.0 месяцев
+2026-01-24 17:44:16 - IQRFilter - INFO - Фильтрация выбросов в столбце experience
+2026-01-24 17:44:16 - IQRFilter - INFO - Удалено 56 выбросов (было 52131, стало 52075)
+2026-01-24 17:44:16 - EducationExtractor - INFO - Извлечение уровня образования из столбца Образование и ВУЗ
+2026-01-24 17:44:19 - EducationExtractor - INFO - Статистика образования: {'Высшее': 34226, 'Другое': 15940, 'Не указано': 1909}
+2026-01-24 17:44:19 - ColumnCleaner - INFO - Очистка столбцов
+2026-01-24 17:44:19 - ColumnCleaner - WARNING - Удалено 4240 строк с пропущенными значениями
+2026-01-24 17:44:19 - ColumnCleaner - INFO - Очистка завершена:
+2026-01-24 17:44:19 - ColumnCleaner - INFO -   Исходные размеры: 52131 строк, 34 столбцов
+2026-01-24 17:44:19 - ColumnCleaner - INFO -   Конечные размеры: 47891 строк, 20 столбцов
+2026-01-24 17:44:19 - ColumnCleaner - INFO -   Удалено столбцов: 14
+2026-01-24 17:44:19 - DataPreparer - INFO - Подготовка данных для машинного обучения
+2026-01-24 17:44:19 - DataPreparer - INFO - Целевая переменная (salary):
+2026-01-24 17:44:19 - DataPreparer - INFO -   Размер: (47891,)
+2026-01-24 17:44:19 - DataPreparer - INFO -   Среднее: 81194.72
+2026-01-24 17:44:19 - DataPreparer - INFO -   Медиана: 60000.00
+2026-01-24 17:44:19 - DataPreparer - INFO -   Стандартное отклонение: 136236.24
+2026-01-24 17:44:19 - DataPreparer - INFO - Матрица признаков X:
+2026-01-24 17:44:19 - DataPreparer - INFO -   Размер: (47891, 61)
+2026-01-24 17:44:19 - DataPreparer - INFO -   Количество признаков: 61
+2026-01-24 17:44:19 - DataPreparer - INFO -   Тип данных: age                     Int64
+full time             float64
+part time             float64
+project work          float64
+volunteering          float64
+                       ...   
+relocation_нет           bool
+business trips_да        bool
+business trips_нет       bool
+education_Высшее         bool
+education_Другое         bool
+Length: 61, dtype: object
+2026-01-24 17:44:19 - DataProcessingPipeline - INFO - Обработка данных завершена успешно
+2026-01-24 17:44:19 - DataProcessingPipeline - INFO - Начало полной обработки и сохранения данных
+2026-01-24 17:44:19 - DataProcessingPipeline - INFO - Пути сохранения: X -> X_data.npy, y -> y_data.npy
+2026-01-24 17:44:20 - DataProcessingPipeline - INFO - Данные успешно сохранены:
+2026-01-24 17:44:20 - DataProcessingPipeline - INFO -   X_data shape: (47891, 61)
+2026-01-24 17:44:20 - DataProcessingPipeline - INFO -   y_data shape: (47891,)
+2026-01-24 17:44:20 - DataProcessingPipeline - INFO -   X сохранен в: X_data.npy
+2026-01-24 17:44:20 - DataProcessingPipeline - INFO -   y сохранен в: y_data.npy
+2026-01-24 17:49:15 - DataProcessingPipeline - INFO - Построение пайплайна обработки данных
+2026-01-24 17:49:15 - DataProcessingPipeline - INFO - Пайплайн построен успешно
+2026-01-24 17:49:15 - DataProcessingPipeline - INFO - Начало обработки данных, размер: (52131, 12)
+2026-01-24 17:49:15 - SexExtractor - INFO - Извлечение пола из столбца Пол, возраст
+2026-01-24 17:49:15 - SexExtractor - INFO - Извлечено 52131 значений пола
+2026-01-24 17:49:15 - AgeExtractor - INFO - Извлечение возраста из столбца Пол, возраст
+2026-01-24 17:49:16 - AgeExtractor - INFO - Извлечено 50234 значений возраста
+2026-01-24 17:49:16 - IQRFilter - INFO - Фильтрация выбросов в столбце age
+2026-01-24 17:49:16 - IQRFilter - INFO - Удалено 1910 выбросов (было 52131, стало 50221)
+2026-01-24 17:49:16 - SalaryExtractor - INFO - Извлечение зарплаты из столбца ЗП
+2026-01-24 17:50:02 - SalaryExtractor - INFO - Извлечено 50221 значений зарплаты
+2026-01-24 17:50:02 - PositionExtractor - INFO - Извлечение должности из столбца Ищет работу на должность:
+2026-01-24 17:50:04 - PositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Системный администратор: 5729
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Инженер: 14833
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Аналитик: 2456
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Менеджер: 12843
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Специалист технической поддержки: 1200
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Программист: 6469
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Тестировщик: 602
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Маркетолог: 536
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Дизайнер: 1012
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Монтажник: 779
+2026-01-24 17:50:04 - PositionExtractor - INFO -   Другая: 5622
+2026-01-24 17:50:07 - LastPositionExtractor - INFO - Статистика извлечения должностей:
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Системный администратор: 3096
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Инженер: 16851
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Аналитик: 1362
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Менеджер: 12676
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Специалист технической поддержки: 1038
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Программист: 4156
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Тестировщик: 278
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Маркетолог: 408
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Дизайнер: 792
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Монтажник: 662
+2026-01-24 17:50:07 - LastPositionExtractor - INFO -   Другая: 10809
+2026-01-24 17:50:07 - CityExtractor - INFO - Извлечение информации о городе из столбца Город
+2026-01-24 17:50:11 - CityExtractor - INFO - Статистика по городам (топ-10):
+2026-01-24 17:50:11 - CityExtractor - INFO -   Москва: 22613
+2026-01-24 17:50:11 - CityExtractor - INFO -   Другой город: 15251
+2026-01-24 17:50:11 - CityExtractor - INFO -   Санкт-Петербург: 5398
+2026-01-24 17:50:11 - CityExtractor - INFO -   Краснодар: 1166
+2026-01-24 17:50:11 - CityExtractor - INFO -   Новосибирск: 980
+2026-01-24 17:50:11 - CityExtractor - INFO -   Казань: 889
+2026-01-24 17:50:11 - CityExtractor - INFO -   Екатеринбург: 748
+2026-01-24 17:50:11 - CityExtractor - INFO -   Самара: 694
+2026-01-24 17:50:11 - CityExtractor - INFO -   Ростов-на-Дону: 587
+2026-01-24 17:50:11 - CityExtractor - INFO -   Нижний Новгород: 578
+2026-01-24 17:50:11 - CityExtractor - INFO - Переезд: {'да': 18244, 'нет': 31977, 'не указано': 1910}
+2026-01-24 17:50:11 - CityExtractor - INFO - Командировки: {'да': 34920, 'нет': 14923, 'не указано': 2288}
+2026-01-24 17:50:11 - EmploymentExtractor - INFO - Извлечение информации о занятости из столбца Занятость
+2026-01-24 17:50:11 - EmploymentExtractor - INFO - Создано 5 бинарных столбцов занятости: ['full time', 'part time', 'project work', 'volunteering', 'work placement']
+2026-01-24 17:50:11 - ScheduleExtractor - INFO - Извлечение информации о графике работы из столбца График
+2026-01-24 17:50:12 - ScheduleExtractor - INFO - Создано 5 бинарных столбцов графика: ['flexible schedule', 'full day', 'remote working', 'rotation based work', 'shift schedule']
+2026-01-24 17:50:12 - ExperienceExtractor - INFO - Извлечение опыта работы из столбца Опыт (двойное нажатие для полной версии)
+2026-01-24 17:50:17 - ExperienceExtractor - INFO - Извлечено 48612 значений опыта работы
+2026-01-24 17:50:17 - ExperienceExtractor - INFO - Средний опыт: 121.0 месяцев
+2026-01-24 17:50:17 - IQRFilter - INFO - Фильтрация выбросов в столбце experience
+2026-01-24 17:50:17 - IQRFilter - INFO - Удалено 56 выбросов (было 52131, стало 52075)
+2026-01-24 17:50:17 - EducationExtractor - INFO - Извлечение уровня образования из столбца Образование и ВУЗ
+2026-01-24 17:50:21 - EducationExtractor - INFO - Статистика образования: {'Высшее': 34226, 'Другое': 15940, 'Не указано': 1909}
+2026-01-24 17:50:21 - ColumnCleaner - INFO - Очистка столбцов
+2026-01-24 17:50:21 - ColumnCleaner - WARNING - Удалено 4240 строк с пропущенными значениями
+2026-01-24 17:50:21 - ColumnCleaner - INFO - Очистка завершена:
+2026-01-24 17:50:21 - ColumnCleaner - INFO -   Исходные размеры: 52131 строк, 34 столбцов
+2026-01-24 17:50:21 - ColumnCleaner - INFO -   Конечные размеры: 47891 строк, 20 столбцов
+2026-01-24 17:50:21 - ColumnCleaner - INFO -   Удалено столбцов: 14
+2026-01-24 17:50:21 - DataPreparer - INFO - Подготовка данных для машинного обучения
+2026-01-24 17:50:21 - DataPreparer - INFO - Целевая переменная (salary):
+2026-01-24 17:50:21 - DataPreparer - INFO -   Размер: (47891,)
+2026-01-24 17:50:21 - DataPreparer - INFO -   Среднее: 81194.72
+2026-01-24 17:50:21 - DataPreparer - INFO -   Медиана: 60000.00
+2026-01-24 17:50:21 - DataPreparer - INFO -   Стандартное отклонение: 136236.24
+2026-01-24 17:50:21 - DataPreparer - INFO - Матрица признаков X:
+2026-01-24 17:50:21 - DataPreparer - INFO -   Размер: (47891, 61)
+2026-01-24 17:50:21 - DataPreparer - INFO -   Количество признаков: 61
+2026-01-24 17:50:21 - DataPreparer - INFO -   Тип данных: age                     Int64
+full time             float64
+part time             float64
+project work          float64
+volunteering          float64
+                       ...   
+relocation_нет           bool
+business trips_да        bool
+business trips_нет       bool
+education_Высшее         bool
+education_Другое         bool
+Length: 61, dtype: object
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO - Обработка данных завершена успешно
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO - Начало полной обработки и сохранения данных
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO - Пути сохранения: X -> X_data.npy, y -> y_data.npy
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO - Данные успешно сохранены:
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO -   X_data shape: (47891, 61)
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO -   y_data shape: (47891,)
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO -   X сохранен в: X_data.npy
+2026-01-24 17:50:21 - DataProcessingPipeline - INFO -   y сохранен в: y_data.npy
