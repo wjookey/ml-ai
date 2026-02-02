@@ -1,0 +1,30 @@
+{
+    "model_type": "Ridge",
+    "best_params": {
+        "alpha": 0.1,
+        "fit_intercept": true,
+        "solver": "auto"
+    },
+    "train_metrics": {
+        "mse": 2188812379.2076945,
+        "mae": 33730.61138833416,
+        "r2": 0.4211218760949407,
+        "predictions_count": 41704
+    },
+    "test_metrics": {
+        "mse": 2280442182.443945,
+        "mae": 34210.57022127719,
+        "r2": 0.4142456463376192,
+        "predictions_count": 10427
+    },
+    "data_info": {
+        "train_samples": 41704,
+        "test_samples": 10427,
+        "total_samples": 52131,
+        "feature_count": 68
+    },
+    "training_config": {
+        "hyperparameter_tuning": true,
+        "cv_folds": 5
+    }
+}
