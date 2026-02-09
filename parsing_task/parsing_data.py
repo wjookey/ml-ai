@@ -4,7 +4,11 @@ import warnings
 import re
 import logging
 from typing import Tuple
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline as SkPipeline
+from sklearn.preprocessing import OneHotEncoder
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,8 +69,7 @@ class SexExtractor(DataHandler):
         """Инициализирует извлекатель пола.
 
         Аргументы:
-            source_column: Название столбца с информацией о поле и возрасте,
-                           по умолчанию "Пол, возраст".
+            source_column: Название столбца с информацией о поле и возрасте.
         """
         super().__init__()
         self.source_column = source_column
@@ -109,8 +112,7 @@ class AgeExtractor(DataHandler):
         """Инициализирует извлекатель возраста.
 
         Аргументы:
-            source_column: Название столбца с информацией о поле и возрасте,
-                           по умолчанию "Пол, возраст".
+            source_column: Название столбца с информацией о поле и возрасте.
         """
         super().__init__()
         self.source_column = source_column
@@ -135,73 +137,20 @@ class AgeExtractor(DataHandler):
             age_match = re.search(self._age_pattern, text, re.IGNORECASE)
             if age_match:
                 try:
-                    df.at[i, "age"] = int(age_match.group(1))
-                    extracted_count += 1
+                    age = int(age_match.group(1))
+                    # Фильтрация некорректных значений возраста
+                    if 18 <= age <= 70:  # Реалистичный диапазон возраста для работы
+                        df.at[i, "age"] = age
+                        extracted_count += 1
                 except ValueError:
                     self.logger.warning(
                         f"Не удалось преобразовать возраст: {age_match.group(1)}"
                     )
                     continue
 
-        df["age"] = pd.to_numeric(df["age"], errors="coerce").astype("Int64")
+        df["age"] = pd.to_numeric(df["age"], errors="coerce")
         self.logger.info(f"Извлечено {extracted_count} значений возраста")
-        return super().handle(df)
-
-
-class IQRFilter(DataHandler):
-    """Фильтрует выбросы по методу межквартильного размаха (IQR)."""
-
-    def __init__(self, column_name: str, iqr_multiplier: float = 3.5) -> None:
-        """Инициализирует фильтр возраста.
-
-        Аргументы:
-            column_name: Название столбца, по умолчанию "age".
-            iqr_multiplier: Множитель для IQR при определении границ выбросов,
-                            по умолчанию 3.5.
-        """
-        super().__init__()
-        self.column_name = column_name
-        self.iqr_multiplier = iqr_multiplier
-
-    def handle(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Удаляет выбросы в данных.
-
-        Аргументы:
-            df: DataFrame с данными.
-
-        Вернет:
-            DataFrame без выбросов.
-        """
-        self.logger.info(f"Фильтрация выбросов в столбце {self.column_name}")
-        df = df.copy()
-        initial_len = len(df)
-
-        if self.column_name in df.columns and df[self.column_name].notna().any():
-            Q1 = df[self.column_name].quantile(0.25)
-            Q3 = df[self.column_name].quantile(0.75)
-            IQR = Q3 - Q1
-
-            lower_bound = Q1 - self.iqr_multiplier * IQR
-            upper_bound = Q3 + self.iqr_multiplier * IQR
-
-            self.logger.debug(f"Q1={Q1}, Q3={Q3}, IQR={IQR}")
-            self.logger.debug(f"Границы: нижняя={lower_bound}, верхняя={upper_bound}")
-
-            filtered_df = df[
-                (df[self.column_name] >= lower_bound)
-                & (df[self.column_name] <= upper_bound)
-            ]
-
-            removed_count = initial_len - len(filtered_df)
-            if removed_count > 0:
-                self.logger.info(
-                    f"Удалено {removed_count} выбросов (было {initial_len}, стало {len(filtered_df)})"
-                )
-            else:
-                self.logger.info("Выбросы не обнаружены")
-
-            df = filtered_df
-
+        self.logger.info(f"Средний возраст: {df['age'].mean():.1f}")
         return super().handle(df)
 
 
@@ -212,8 +161,7 @@ class SalaryExtractor(DataHandler):
         """Инициализирует извлекатель зарплаты.
 
         Аргументы:
-            source_column: Название столбца с информацией о зарплате,
-                           по умолчанию "ЗП".
+            source_column: Название столбца с информацией о зарплате.
         """
         super().__init__()
         self.source_column = source_column
@@ -291,7 +239,7 @@ class SalaryExtractor(DataHandler):
             if count > 0:
                 self.logger.debug(f"Конвертация из {currency}: {count} раз")
 
-        df["salary"] = pd.to_numeric(df["salary"], errors="coerce").astype("Float64")
+        df["salary"] = pd.to_numeric(df["salary"], errors="coerce")
         return super().handle(df)
 
 
@@ -302,8 +250,7 @@ class PositionExtractor(DataHandler):
         """Инициализирует извлекатель желаемой должности.
 
         Аргументы:
-            source_column: Название столбца с информацией о желаемой должности,
-                           по умолчанию "Ищет работу на должность:".
+            source_column: Название столбца с информацией о желаемой должности.
         """
         super().__init__()
         self.source_column = source_column
@@ -374,8 +321,7 @@ class LastPositionExtractor(DataHandler):
         """Инициализирует извлекатель последней должности.
 
         Аргументы:
-            source_column: Название столбца с информацией о последней должности,
-                           по умолчанию "Последеняя/нынешняя должность".
+            source_column: Название столбца с информацией о последней должности.
         """
         super().__init__()
         self.source_column = source_column
@@ -448,8 +394,7 @@ class CityExtractor(DataHandler):
         """Инициализирует извлекатель информации о городе.
 
         Аргументы:
-            source_column: Название столбца с информацией о городе,
-                           по умолчанию "Город".
+            source_column: Название столбца с информацией о городе.
         """
         super().__init__()
         self.source_column = source_column
@@ -573,8 +518,7 @@ class EmploymentExtractor(DataHandler):
         """Инициализирует извлекатель информации о занятости.
 
         Аргументы:
-            source_column: Название столбца с информацией о занятости,
-                           по умолчанию "Занятость".
+            source_column: Название столбца с информацией о занятости.
         """
         super().__init__()
         self.source_column = source_column
@@ -614,7 +558,6 @@ class EmploymentExtractor(DataHandler):
 
         self.logger.debug(f"Выполнено {replacement_count} замен")
 
-        # Приведение к нижнему регистру и разделение
         df[self.source_column] = df[self.source_column].str.strip().str.lower()
         df["employment_list"] = df[self.source_column].str.split(", ")
 
@@ -640,8 +583,7 @@ class ScheduleExtractor(DataHandler):
         """Инициализирует извлекатель информации о графике работы.
 
         Аргументы:
-            source_column: Название столбца с информацией о графике работы,
-                           по умолчанию "График".
+            source_column: Название столбца с информацией о графике работы.
         """
         super().__init__()
         self.source_column = source_column
@@ -681,7 +623,6 @@ class ScheduleExtractor(DataHandler):
 
         self.logger.debug(f"Выполнено {replacement_count} замен")
 
-        # Приведение к нижнему регистру и разделение
         df[self.source_column] = df[self.source_column].str.strip().str.lower()
         df["schedule_list"] = df[self.source_column].str.split(", ")
 
@@ -707,8 +648,7 @@ class ExperienceExtractor(DataHandler):
         """Инициализирует извлекатель опыта работы.
 
         Аргументы:
-            source_column: Название столбца с информацией об опыте работы,
-                           по умолчанию "Опыт (двойное нажатие для полной версии)".
+            source_column: Название столбца с информацией об опыте работы.
         """
         super().__init__()
         self.source_column = source_column
@@ -743,7 +683,8 @@ class ExperienceExtractor(DataHandler):
                     )
 
             months_match = re.search(
-                r"опыт.*?работы.*?(\d+)\s*(?:месяцев|мес|месяца?)", text
+                r"опыт.*?работы.*?(\d+)\s*(?:месяцев|мес|месяца?)",
+                text,
             )
             if months_match:
                 try:
@@ -766,7 +707,7 @@ class ExperienceExtractor(DataHandler):
                         )
 
             total_months = years * 12 + months
-            if total_months > 0:
+            if total_months > 0 and total_months <= 600:  # Максимум 50 лет
                 df.at[i, "experience"] = total_months
                 extracted_count += 1
 
@@ -774,9 +715,7 @@ class ExperienceExtractor(DataHandler):
         if extracted_count > 0:
             self.logger.info(f"Средний опыт: {df['experience'].mean():.1f} месяцев")
 
-        df["experience"] = pd.to_numeric(df["experience"], errors="coerce").astype(
-            "Int64"
-        )
+        df["experience"] = pd.to_numeric(df["experience"], errors="coerce")
         return super().handle(df)
 
 
@@ -787,8 +726,7 @@ class EducationExtractor(DataHandler):
         """Инициализирует извлекатель образования.
 
         Аргументы:
-            source_column: Название столбца с информацией об образовании,
-                           по умолчанию "Образование и ВУЗ".
+            source_column: Название столбца с информацией об образовании.
         """
         super().__init__()
         self.source_column = source_column
@@ -832,6 +770,302 @@ class EducationExtractor(DataHandler):
         return super().handle(df)
 
 
+class FeatureEngineering(DataHandler):
+    """Добавляет новые признаки для улучшения предсказательной способности модели."""
+
+    def __init__(self):
+        super().__init__()
+
+    def handle(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Добавляет новые признаки.
+
+        Аргументы:
+            df: DataFrame с исходными данными.
+
+        Вернет:
+            DataFrame с добавленными признаками.
+        """
+        self.logger.info("Добавление новых признаков")
+        df = df.copy()
+
+        # 1. Взаимодействие возраста и опыта
+        if "age" in df.columns and "experience" in df.columns:
+            df["age"] = pd.to_numeric(df["age"], errors="coerce")
+            df["experience"] = pd.to_numeric(df["experience"], errors="coerce")
+
+            # Опыт по отношению к возрасту (сколько % жизни в работе)
+            df["experience_to_age_ratio"] = df["experience"] / (df["age"] * 12)
+            # Фильтрация некорректных значений
+            df["experience_to_age_ratio"] = df["experience_to_age_ratio"].clip(0, 1)
+
+        # 2. Группировка городов по регионам/кластерам
+        if "city" in df.columns:
+            # Определение столичных городов
+            capital_cities = ["Москва", "Санкт-Петербург"]
+            df["is_capital"] = df["city"].isin(capital_cities).astype(int)
+
+            # Определение городов-миллионников
+            million_cities = [
+                "Москва",
+                "Санкт-Петербург",
+                "Новосибирск",
+                "Екатеринбург",
+                "Казань",
+                "Нижний Новгород",
+                "Челябинск",
+                "Самара",
+                "Омск",
+                "Ростов-на-Дону",
+                "Уфа",
+                "Красноярск",
+                "Воронеж",
+                "Пермь",
+                "Волгоград",
+            ]
+            df["is_million_city"] = df["city"].isin(million_cities).astype(int)
+
+        # 3. Простота должности (количество слов)
+        if "position" in df.columns:
+            df["position_word_count"] = df["position"].apply(
+                lambda x: len(str(x).split()) if pd.notna(x) else 0
+            )
+
+        # 4. Индикатор соответствия желаемой и последней должности
+        if "position" in df.columns and "last position" in df.columns:
+            df["position_match"] = (df["position"] == df["last position"]).astype(int)
+
+        # 5. Плотность занятости (сколько вариантов выбрано)
+        if "full time" in df.columns:
+            employment_cols = [
+                col
+                for col in df.columns
+                if col
+                in [
+                    "full time",
+                    "part time",
+                    "project work",
+                    "work placement",
+                    "volunteering",
+                ]
+            ]
+            if employment_cols:
+                df["employment_density"] = df[employment_cols].sum(axis=1)
+
+        # 6. Плотность графика
+        if "full day" in df.columns:
+            schedule_cols = [
+                col
+                for col in df.columns
+                if col
+                in [
+                    "full day",
+                    "shift schedule",
+                    "flexible schedule",
+                    "rotation based work",
+                    "remote working",
+                ]
+            ]
+            if schedule_cols:
+                df["schedule_density"] = df[schedule_cols].sum(axis=1)
+
+        self.logger.info("Добавлено несколько новых признаков")
+        return super().handle(df)
+
+
+class OutlierHandler(DataHandler):
+    """Обрабатывает выбросы в числовых признаках."""
+
+    def __init__(self, iqr_multiplier: float = 3.0):
+        """Инициализирует обработчик выбросов.
+
+        Аргументы:
+            iqr_multiplier: Множитель для определения границ выбросов.
+        """
+        super().__init__()
+        self.iqr_multiplier = iqr_multiplier
+
+    def handle(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Обрабатывает выбросы в числовых признаках методом обрезания.
+
+        Аргументы:
+            df: DataFrame с данными.
+
+        Вернет:
+            DataFrame с обработанными выбросами.
+        """
+        self.logger.info("Обработка выбросов методом обрезания (clipping)")
+        df = df.copy()
+
+        # Определяем числовые признаки
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+
+        for col in numeric_cols:
+            if col != "salary" and df[col].notna().any():
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
+
+                lower_bound = Q1 - self.iqr_multiplier * IQR
+                upper_bound = Q3 + self.iqr_multiplier * IQR
+
+                # Обрезаем выбросы
+                df[col] = df[col].clip(lower_bound, upper_bound)
+                clipped_count = (
+                    (df[col] == lower_bound) | (df[col] == upper_bound)
+                ).sum()
+                if clipped_count > 0:
+                    self.logger.debug(f"  {col}: обрезано {clipped_count} выбросов")
+
+        return super().handle(df)
+
+
+class MissingValueHandler(DataHandler):
+    """Обрабатывает пропущенные значения."""
+
+    def __init__(
+        self,
+        numeric_strategy: str = "median",
+        categorical_strategy: str = "most_frequent",
+    ):
+        """Инициализирует обработчик пропущенных значений.
+
+        Аргументы:
+            numeric_strategy: Стратегия для числовых признаков.
+            categorical_strategy: Стратегия для категориальных признаков.
+        """
+        super().__init__()
+        self.numeric_strategy = numeric_strategy
+        self.categorical_strategy = categorical_strategy
+
+    def handle(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Обрабатывает пропущенные значения.
+
+        Аргументы:
+            df: DataFrame с данными.
+
+        Вернет:
+            DataFrame без пропущенных значений.
+        """
+        self.logger.info("Обработка пропущенных значений")
+        df = df.copy()
+
+        # Анализ пропущенных значений перед обработкой
+        missing_before = df.isnull().sum().sum()
+        self.logger.info(f"Пропущенных значений перед обработкой: {missing_before}")
+
+        # Разделяем на числовые и категориальные признаки
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+        # Удаляем salary из числовых признаков для отдельной обработки
+        if "salary" in numeric_cols:
+            numeric_cols.remove("salary")
+
+        # Обработка числовых признаков
+        for col in numeric_cols:
+            if df[col].isnull().any():
+                if self.numeric_strategy == "median":
+                    fill_value = df[col].median()
+                elif self.numeric_strategy == "mean":
+                    fill_value = df[col].mean()
+                elif self.numeric_strategy == "mode":
+                    fill_value = df[col].mode()[0] if not df[col].mode().empty else 0
+                else:
+                    fill_value = 0
+
+                df[col] = df[col].fillna(fill_value)
+                self.logger.debug(
+                    f"  {col} (числовой): заполнено {df[col].isnull().sum()} пропусков"
+                )
+
+        # Обработка категориальных признаков
+        for col in categorical_cols:
+            if df[col].isnull().any():
+                if self.categorical_strategy == "most_frequent":
+                    fill_value = (
+                        df[col].mode()[0] if not df[col].mode().empty else "Не указано"
+                    )
+                elif self.categorical_strategy == "constant":
+                    fill_value = "Не указано"
+                else:
+                    fill_value = "Не указано"
+
+                df[col] = df[col].fillna(fill_value)
+                self.logger.debug(
+                    f"  {col} (категориальный): заполнено {df[col].isnull().sum()} пропусков"
+                )
+
+        # Анализ после обработки
+        missing_after = df.isnull().sum().sum()
+        self.logger.info(f"Пропущенных значений после обработки: {missing_after}")
+        self.logger.info(
+            f"Обработано {missing_before - missing_after} пропущенных значений"
+        )
+
+        return super().handle(df)
+
+
+class SalaryOutlierHandler(DataHandler):
+    """Отдельный обработчик выбросов в зарплате."""
+
+    def __init__(self, method: str = "clip", iqr_multiplier: float = 3.0):
+        """Инициализирует обработчик выбросов зарплаты.
+
+        Аргументы:
+            method: Метод обработки ('clip', 'remove').
+            iqr_multiplier: Множитель для определения границ выбросов.
+        """
+        super().__init__()
+        self.method = method
+        self.iqr_multiplier = iqr_multiplier
+
+    def handle(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Обрабатывает выбросы в зарплате.
+
+        Аргументы:
+            df: DataFrame с данными.
+
+        Вернет:
+            DataFrame с обработанной зарплатой.
+        """
+        self.logger.info(f"Обработка выбросов в зарплате методом {self.method}")
+        df = df.copy()
+
+        if "salary" in df.columns and df["salary"].notna().any():
+            Q1 = df["salary"].quantile(0.25)
+            Q3 = df["salary"].quantile(0.75)
+            IQR = Q3 - Q1
+
+            lower_bound = max(
+                0, Q1 - self.iqr_multiplier * IQR
+            )  # Зарплата не может быть отрицательной
+            upper_bound = Q3 + self.iqr_multiplier * IQR
+
+            if self.method == "clip":
+                # Обрезаем выбросы
+                df["salary"] = df["salary"].clip(lower_bound, upper_bound)
+                clipped_count = (
+                    (df["salary"] == lower_bound) | (df["salary"] == upper_bound)
+                ).sum()
+                if clipped_count > 0:
+                    self.logger.info(f"  Зарплата: обрезано {clipped_count} выбросов")
+                    self.logger.info(
+                        f"  Границы: {lower_bound:.0f} - {upper_bound:.0f}"
+                    )
+
+            elif self.method == "remove":
+                # Удаляем строки с выбросами
+                initial_len = len(df)
+                df = df[(df["salary"] >= lower_bound) & (df["salary"] <= upper_bound)]
+                removed_count = initial_len - len(df)
+                if removed_count > 0:
+                    self.logger.info(
+                        f"  Зарплата: удалено {removed_count} строк с выбросами"
+                    )
+
+        return super().handle(df)
+
+
 class ColumnCleaner(DataHandler):
     """Удаляет ненужные столбцы и строки и подготавливает данные для сохранения."""
 
@@ -870,15 +1104,6 @@ class ColumnCleaner(DataHandler):
         initial_rows = len(df)
         initial_columns = len(df.columns)
 
-        # Удаление строк с пропущенными значениями
-        df = df.dropna(axis=0)
-        rows_after_dropna = len(df)
-        dropped_rows = initial_rows - rows_after_dropna
-        if dropped_rows > 0:
-            self.logger.warning(
-                f"Удалено {dropped_rows} строк с пропущенными значениями"
-            )
-
         # Удаляем только те столбцы, которые существуют в DataFrame
         existing_columns = [col for col in self._columns_to_drop if col in df.columns]
         df = df.drop(columns=existing_columns, axis=1)
@@ -891,11 +1116,85 @@ class ColumnCleaner(DataHandler):
             f"  Исходные размеры: {initial_rows} строк, {initial_columns} столбцов"
         )
         self.logger.info(
-            f"  Конечные размеры: {rows_after_dropna} строк, {final_columns} столбцов"
+            f"  Конечные размеры: {initial_rows} строк, {final_columns} столбцов"
         )
         self.logger.info(f"  Удалено столбцов: {removed_columns}")
 
         return super().handle(df)
+
+
+class SklearnPreprocessor(DataHandler):
+    """Применяет стандартные sklearn преобразования."""
+
+    def __init__(self):
+        """Инициализирует sklearn препроцессор."""
+        super().__init__()
+
+    def handle(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+        """Подготавливает данные для sklearn.
+
+        Аргументы:
+            df: DataFrame с данными.
+
+        Вернет:
+            Кортеж (X, y) для обучения модели.
+        """
+        self.logger.info("Подготовка данных для sklearn")
+        df = df.copy()
+
+        # Проверяем наличие целевой переменной
+        if "salary" not in df.columns:
+            raise ValueError("Целевая переменная 'salary' не найдена в данных")
+
+        # Выделяем целевую переменную
+        y = df["salary"].values
+        X_df = df.drop(columns=["salary"], errors="ignore")
+
+        # Разделяем на числовые и категориальные признаки
+        numeric_features = X_df.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_features = X_df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+        self.logger.info(f"Числовых признаков: {len(numeric_features)}")
+        self.logger.info(f"Категориальных признаков: {len(categorical_features)}")
+
+        numeric_transformer = SkPipeline(
+            steps=[
+                ("imputer", SimpleImputer(strategy="median")),
+                ("scaler", StandardScaler()),
+            ]
+        )
+
+        categorical_transformer = SkPipeline(
+            steps=[
+                (
+                    "imputer",
+                    SimpleImputer(strategy="constant", fill_value="missing"),
+                ),
+                (
+                    "onehot",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                ),
+            ]
+        )
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ("num", numeric_transformer, numeric_features),
+                (
+                    "cat",
+                    categorical_transformer,
+                    categorical_features,
+                ),
+            ]
+        )
+
+        # Применяем преобразования
+        X_processed = preprocessor.fit_transform(X_df)
+
+        self.logger.info(f"Размер X после обработки: {X_processed.shape}")
+        self.logger.info(f"Размер y: {y.shape}")
+
+        return X_processed, y
 
 
 class DataPreparer(DataHandler):
@@ -923,7 +1222,7 @@ class DataPreparer(DataHandler):
             raise ValueError(error_msg)
 
         # Разделяем на признаки и целевую переменную
-        y = df["salary"]
+        y = df["salary"].values
 
         self.logger.info("Целевая переменная (salary):")
         self.logger.info(f"  Размер: {y.shape}")
@@ -931,19 +1230,16 @@ class DataPreparer(DataHandler):
         self.logger.info(f"  Медиана: {np.nanmedian(y):.2f}")
         self.logger.info(f"  Стандартное отклонение: {np.nanstd(y):.2f}")
 
-        # Удаляем salary из признаков
         X_df = df.drop(columns=["salary"], errors="ignore")
 
         # Преобразуем категориальные признаки в числовые
         X_df = pd.get_dummies(X_df)
 
-        # Конвертируем в numpy array
-        X = X_df
+        X = X_df.values
 
         self.logger.info("Матрица признаков X:")
         self.logger.info(f"  Размер: {X.shape}")
         self.logger.info(f"  Количество признаков: {X.shape[1]}")
-        self.logger.info(f"  Тип данных: {X.dtypes}")
 
         return X, y
 
@@ -951,9 +1247,14 @@ class DataPreparer(DataHandler):
 class DataProcessingPipeline:
     """Пайплайн обработки данных с использованием цепочки ответственности."""
 
-    def __init__(self) -> None:
-        """Инициализирует пайплайн обработки данных."""
+    def __init__(self, use_sklearn: bool = False) -> None:
+        """Инициализирует пайплайн обработки данных.
+
+        Аргументы:
+            use_sklearn: Использовать ли sklearn preprocessing (стандартизацию и one-hot).
+        """
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.use_sklearn = use_sklearn
         self._pipeline = self._build_pipeline()
 
     def _build_pipeline(self) -> DataHandler:
@@ -967,7 +1268,6 @@ class DataProcessingPipeline:
         # Создаем обработчики
         sex_extractor = SexExtractor("Пол, возраст")
         age_extractor = AgeExtractor("Пол, возраст")
-        age_filter = IQRFilter("age")
         salary_extractor = SalaryExtractor("ЗП")
         position_extractor = PositionExtractor("Ищет работу на должность:")
         last_position_extractor = LastPositionExtractor("Последеняя/нынешняя должность")
@@ -977,14 +1277,21 @@ class DataProcessingPipeline:
         experience_extractor = ExperienceExtractor(
             "Опыт (двойное нажатие для полной версии)"
         )
-        experience_filter = IQRFilter("experience")
         education_extractor = EducationExtractor("Образование и ВУЗ")
+        feature_engineering = FeatureEngineering()
+        outlier_handler = OutlierHandler(iqr_multiplier=3.0)
+        salary_outlier_handler = SalaryOutlierHandler(method="clip", iqr_multiplier=3.0)
+        missing_value_handler = MissingValueHandler()
         column_cleaner = ColumnCleaner()
-        data_preparer = DataPreparer()
+
+        if self.use_sklearn:
+            data_preparer = SklearnPreprocessor()
+        else:
+            data_preparer = DataPreparer()
 
         # Строим цепочку
-        sex_extractor.set_next(age_extractor).set_next(age_filter).set_next(
-            salary_extractor
+        sex_extractor.set_next(age_extractor).set_next(salary_extractor).set_next(
+            salary_outlier_handler
         ).set_next(position_extractor).set_next(last_position_extractor).set_next(
             city_extractor
         ).set_next(
@@ -994,9 +1301,13 @@ class DataProcessingPipeline:
         ).set_next(
             experience_extractor
         ).set_next(
-            experience_filter
-        ).set_next(
             education_extractor
+        ).set_next(
+            feature_engineering
+        ).set_next(
+            outlier_handler
+        ).set_next(
+            missing_value_handler
         ).set_next(
             column_cleaner
         ).set_next(
@@ -1010,7 +1321,7 @@ class DataProcessingPipeline:
         """Обрабатывает DataFrame и возвращает X и y данные.
 
         Аргументы:
-            df: Исходный DataFrame с данными из hh.csv.
+            df: Исходный DataFrame с данными.
 
         Вернет:
             Кортеж (X, y) где X - признаки, y - целевая переменная.
@@ -1021,24 +1332,28 @@ class DataProcessingPipeline:
             self.logger.info("Обработка данных завершена успешно")
             return result
         except Exception as e:
-            self.logger.error(f"Ошибка при обработке данных: {str(e)}", exc_info=True)
+            self.logger.error(
+                f"Ошибка при обработке данных: {str(e)}",
+                exc_info=True,
+            )
             raise
 
     def save(
         self,
-        X: pd.DataFrame,
-        y: pd.DataFrame,
+        X: np.ndarray,
+        y: np.ndarray,
         x_path: str = "X_data.npy",
         y_path: str = "y_data.npy",
     ) -> None:
-        """Обрабатывает DataFrame и сохраняет результаты в npy файлы.
+        """Сохраняет обработанные данные в npy файлы.
 
         Аргументы:
-            df: Исходный DataFrame с данными из hh.csv.
+            X: Признаки.
+            y: Целевая переменная.
             x_path: Путь для сохранения файла с признаками.
             y_path: Путь для сохранения файла с целевой переменной.
         """
-        self.logger.info("Начало полной обработки и сохранения данных")
+        self.logger.info("Сохранение обработанных данных в npy")
         self.logger.info(f"Пути сохранения: X -> {x_path}, y -> {y_path}")
 
         try:
@@ -1047,11 +1362,14 @@ class DataProcessingPipeline:
             np.save(y_path, y)
 
             self.logger.info("Данные успешно сохранены:")
-            self.logger.info(f"  X_data shape: {X.shape}")
-            self.logger.info(f"  y_data shape: {y.shape}")
+            self.logger.info(f"  X shape: {X.shape}")
+            self.logger.info(f"  y shape: {y.shape}")
             self.logger.info(f"  X сохранен в: {x_path}")
             self.logger.info(f"  y сохранен в: {y_path}")
 
         except Exception as e:
-            self.logger.error(f"Ошибка при сохранении данных: {str(e)}", exc_info=True)
+            self.logger.error(
+                f"Ошибка при сохранении данных: {str(e)}",
+                exc_info=True,
+            )
             raise

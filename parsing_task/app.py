@@ -6,7 +6,7 @@ import sys
 
 
 def parse_arguments():
-    """Парсинг аргументов командной строки"""
+    """Парсинг аргументов командной строки."""
     parser = argparse.ArgumentParser(
         description="Обработка данных HH.ru для машинного обучения"
     )
@@ -20,7 +20,7 @@ def parse_arguments():
 
 
 def main():
-    """Основная функция приложения"""
+    """Основная функция приложения."""
     args = parse_arguments()
 
     # Проверяем существование файла
