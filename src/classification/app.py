@@ -21,21 +21,17 @@ def main():
 
     unique_classes, class_counts = analyze_class_distribution(y)
 
-    X_train, X_test, y_train, y_test, scaler = prepare_data(X, y)
+    X_train, X_test, y_train, y_test, _ = prepare_data(X, y)
 
-    model, accuracy, cv_scores = train_and_evaluate_model(
-        X_train, y_train, X_test, y_test
-    )
+    model, accuracy, _ = train_and_evaluate_model(X_train, y_train, X_test, y_test)
 
-    y_pred, report = generate_classification_report(
-        model, X_test, y_test, unique_classes
-    )
+    y_pred, _ = generate_classification_report(model, X_test, y_test, unique_classes)
 
-    cm = plot_confusion_matrix(y_test, y_pred, unique_classes)
+    plot_confusion_matrix(y_test, y_pred, unique_classes)
 
     analyze_class_errors(y_test, y_pred, unique_classes)
 
-    baseline_accuracy, most_common_class = calculate_baseline(y_test, class_counts, unique_classes)
+    baseline_accuracy, _ = calculate_baseline(y_test, class_counts, unique_classes)
 
     print("Accuracy:", accuracy)
     print("Baseline accuracy:", baseline_accuracy)

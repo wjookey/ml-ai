@@ -20,10 +20,10 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 
 
 def plot_class_distribution(
-    y_data_path: str = 'y_data.npy',
+    y_data_path: str = "y_data.npy",
     figsize: tuple = (14, 8),
     bar_colors: list = None,
-    pie_colors: list = None
+    pie_colors: list = None,
 ) -> dict:
     """Визуализирует распределение классов в данных.
 
@@ -52,67 +52,59 @@ def plot_class_distribution(
 
     # Настройка цветов по умолчанию
     if bar_colors is None:
-        bar_colors = ['#ff6b6b', '#4ecdc4', '#45b7d1']
+        bar_colors = ["#ff6b6b", "#4ecdc4", "#45b7d1"]
 
     if pie_colors is None:
-        pie_colors = ['#ff9999', '#66b3ff', '#99ff99']
+        pie_colors = ["#ff9999", "#66b3ff", "#99ff99"]
 
-    plt.style.use('seaborn-v0_8')
+    plt.style.use("seaborn-v0_8")
     sns.set_palette("husl")
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
     # 1. Столбчатая диаграмма
     bars = ax1.bar(
-        unique_classes,
-        class_counts,
-        color=bar_colors[:len(unique_classes)]
+        unique_classes, class_counts, color=bar_colors[: len(unique_classes)]
     )
 
-    ax1.set_xlabel('Уровень специалиста', fontsize=12, fontweight='bold')
-    ax1.set_ylabel('Количество резюме', fontsize=12, fontweight='bold')
+    ax1.set_xlabel("Уровень специалиста", fontsize=12, fontweight="bold")
+    ax1.set_ylabel("Количество резюме", fontsize=12, fontweight="bold")
     ax1.set_title(
-        'Распределение резюме по уровням специалистов',
-        fontsize=14,
-        fontweight='bold'
+        "Распределение резюме по уровням специалистов", fontsize=14, fontweight="bold"
     )
 
     for bar, count in zip(bars, class_counts):
         height = bar.get_height()
         percentage = count / total_samples * 100
         ax1.text(
-            bar.get_x() + bar.get_width() / 2.,
+            bar.get_x() + bar.get_width() / 2.0,
             height + 0.1,
-            f'{count}\n({percentage:.1f}%)',
-            ha='center',
-            va='bottom',
-            fontsize=10
+            f"{count}\n({percentage:.1f}%)",
+            ha="center",
+            va="bottom",
+            fontsize=10,
         )
 
     # 2. Круговая диаграмма
-    wedges, texts, autotexts = ax2.pie(
+    _, _, autotexts = ax2.pie(
         class_counts,
         labels=unique_classes,
-        autopct='%1.1f%%',
-        colors=pie_colors[:len(unique_classes)],
+        autopct="%1.1f%%",
+        colors=pie_colors[: len(unique_classes)],
         startangle=90,
-        textprops={'fontsize': 11}
+        textprops={"fontsize": 11},
     )
 
-    ax2.set_title(
-        'Процентное соотношение уровней',
-        fontsize=14,
-        fontweight='bold'
-    )
+    ax2.set_title("Процентное соотношение уровней", fontsize=14, fontweight="bold")
 
     for autotext in autotexts:
-        autotext.set_fontweight('bold')
+        autotext.set_fontweight("bold")
 
     fig.suptitle(
-        f'Баланс классов | Всего резюме: {total_samples}',
+        f"Баланс классов | Всего резюме: {total_samples}",
         fontsize=16,
-        fontweight='bold',
-        y=1.02
+        fontweight="bold",
+        y=1.02,
     )
 
     # Статистика по балансу классов
@@ -120,20 +112,19 @@ def plot_class_distribution(
     for cls, count in zip(unique_classes, class_counts):
         percentage = count / total_samples * 100
         class_stats[cls] = {
-            'count': int(count),
-            'percentage': float(f'{percentage:.2f}')
+            "count": int(count),
+            "percentage": float(f"{percentage:.2f}"),
         }
 
     # Проверка дисбаланса
     max_count = max(class_counts)
     min_count = min(class_counts)
-    imbalance_ratio = max_count / min_count if min_count > 0 else float('inf')
+    imbalance_ratio = max_count / min_count if min_count > 0 else float("inf")
 
-    class_stats['total_samples'] = total_samples
-    class_stats['imbalance_ratio'] = float(f'{imbalance_ratio:.2f}')
+    class_stats["total_samples"] = total_samples
+    class_stats["imbalance_ratio"] = float(f"{imbalance_ratio:.2f}")
 
     plt.tight_layout()
     plt.show()
 
     return class_stats
-

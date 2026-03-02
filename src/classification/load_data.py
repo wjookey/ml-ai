@@ -19,22 +19,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
-def load_data(X_path='X_data.npy', y_path='y_data.npy'):
+def load_data(x_path="X_data.npy", y_path="y_data.npy"):
     """Загрузка данных из файлов .npy.
 
     Аргументы:
-        X_path: Путь к файлу с признаками.
+        x_path: Путь к файлу с признаками.
         y_path: Путь к файлу с целевой переменной.
 
     Вернёт:
         X: Матрица признаков.
         y: Вектор целевой переменной.
     """
-    X = np.load(X_path, allow_pickle=True)
+    X = np.load(x_path, allow_pickle=True)
     y = np.load(y_path, allow_pickle=True)
 
     print(f"Размерность данных: X.shape = {X.shape}, y.shape = {y.shape}")
     print(f"Количество признаков: {X.shape[1]}")
 
     return X, y
-

@@ -36,10 +36,9 @@ def prepare_data(X, y, test_size=0.3, random_state=42):
     )
 
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    x_train_scaled = scaler.fit_transform(X_train)
+    x_test_scaled = scaler.transform(X_test)
 
     print(f"\nРазмер train: {X_train.shape[0]}, размер test: {X_test.shape[0]}")
 
-    return X_train_scaled, X_test_scaled, y_train, y_test, scaler
-
+    return x_train_scaled, x_test_scaled, y_train, y_test, scaler

@@ -33,9 +33,10 @@ def calculate_baseline(y_test, class_counts, unique_classes):
     most_common_class = unique_classes[np.argmax(class_counts)]
     baseline_accuracy = sum(y_test == most_common_class) / len(y_test)
 
-    print(f"\n" + "="*60)
-    print(f"Точность baseline (всегда предсказываем '{most_common_class}'): {baseline_accuracy:.3f}")
-    print("="*60)
+    print("\n" + "=" * 60)
+    print(
+        f"Точность baseline (всегда предсказываем '{most_common_class}'): {baseline_accuracy:.3f}"
+    )
+    print("=" * 60)
 
     return baseline_accuracy, most_common_class
-
