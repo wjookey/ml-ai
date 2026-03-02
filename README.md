@@ -36,7 +36,7 @@
 Проект требует следующих зависимостей:
 
 ```bash
-pandas numpy scikit-learn
+pip install numpy pandas scikit-learn
 ```
 
 Запустить обработку можно так:

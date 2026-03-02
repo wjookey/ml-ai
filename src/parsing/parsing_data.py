@@ -25,6 +25,21 @@ logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore")
 
+# Constants for repeated string literals
+LAST_POSITION_COLUMN = "last position"
+MOSCOW = "Москва"
+SAINT_PETERSBURG = "Санкт-Петербург"
+FULL_TIME = "full time"
+FULL_DAY = "full day"
+NOT_SPECIFIED = "Не указано"
+OTHER = "Другая"
+OTHER_EDUCATION = "Другое"
+HIGHER_EDUCATION = "Высшее"
+BUSINESS_TRIPS = "business trips"
+OTHER_CITY = "Другой город"
+NOT_SPECIFIED_LOWERCASE = "не указано"
+SEX_AGE_COLUMN = "Пол, возраст"
+
 
 class DataHandler:
     """Базовый абстрактный класс обработчика данных в паттерне
@@ -191,6 +206,41 @@ class SalaryExtractor(DataHandler):
 
         self._num_pattern = r"([\d\s]+)"
 
+    def _extract_numeric_value(self, text: str) -> float:
+        """Извлекает числовое значение из текста.
+
+        Аргументы:
+            text: Исходный текст.
+
+        Возвращает:
+            Извлеченное числовое значение или 0.
+        """
+        cleaned_text = re.sub(r"[^0-9,.\-]", "", text).replace(",", ".")
+        num_match = re.search(self._num_pattern, cleaned_text)
+
+        if num_match:
+            try:
+                return float(num_match.group(1).replace(" ", ""))
+            except (ValueError, AttributeError):
+                self.logger.debug(f"Не удалось преобразовать число в тексте: {text}")
+        return 0
+
+    def _convert_to_rubles(self, num_salary: float, text: str) -> tuple:
+        """Конвертирует сумму в рубли и определяет валюту.
+
+        Аргументы:
+            num_salary: Числовое значение суммы.
+            text: Текст для определения валюты.
+
+        Возвращает:
+            Кортеж (конвертированная_сумма, валюта) или (0, None) если валюта не найдена.
+        """
+        text = text.upper()
+        for currency, pattern in self._currency_patterns.items():
+            if re.search(pattern, text, re.IGNORECASE):
+                return num_salary * self._exchange_rates[currency], currency
+        return 0, None
+
     def handle(self, df: pd.DataFrame) -> pd.DataFrame:
         """Извлекает зарплату и конвертирует в рубли.
 
@@ -204,31 +254,19 @@ class SalaryExtractor(DataHandler):
         df = df.copy()
         df["salary"] = None
         extracted_count = 0
-        conversion_stats = {currency: 0 for currency in self._exchange_rates}
+        conversion_stats = dict.fromkeys(self._exchange_rates, 0)
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).strip()
-            num_salary = 0
 
             # Извлечение числового значения
-            cleaned_text = re.sub(r"[^0-9,.\-]", "", text).replace(",", ".")
-            num_match = re.search(self._num_pattern, cleaned_text)
-
-            if num_match:
-                try:
-                    num_salary = float(num_match.group(1).replace(" ", ""))
-                except (ValueError, AttributeError):
-                    self.logger.debug(
-                        f"Не удалось преобразовать число в тексте: {text}"
-                    )
+            num_salary = self._extract_numeric_value(text)
 
             # Конвертация в рубли
-            text = text.upper()
-            for currency, pattern in self._currency_patterns.items():
-                if re.search(pattern, text, re.IGNORECASE):
-                    num_salary *= self._exchange_rates[currency]
-                    conversion_stats[currency] += 1
-                    break
+            num_salary, currency = self._convert_to_rubles(num_salary, text)
+
+            if currency:
+                conversion_stats[currency] += 1
 
             if num_salary > 0:
                 df.at[i, "salary"] = num_salary
@@ -289,8 +327,8 @@ class PositionExtractor(DataHandler):
         self.logger.info(f"Извлечение должности из столбца {self.source_column}")
         df = df.copy()
         df["position"] = None
-        position_stats = {position: 0 for position in self._positions.keys()}
-        position_stats["Другая"] = 0
+        position_stats = dict.fromkeys(self._positions.keys(), 0)
+        position_stats[OTHER] = 0
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).strip()
@@ -303,8 +341,8 @@ class PositionExtractor(DataHandler):
                     break
 
             if not position_found:
-                df.at[i, "position"] = "Другая"
-                position_stats["Другая"] += 1
+                df.at[i, "position"] = OTHER
+                position_stats[OTHER] += 1
 
         self.logger.info("Статистика извлечения должностей:")
         for position, count in position_stats.items():
@@ -359,23 +397,23 @@ class LastPositionExtractor(DataHandler):
             DataFrame с добавленным столбцом 'last position'.
         """
         df = df.copy()
-        df["last position"] = None
-        position_stats = {position: 0 for position in self._positions.keys()}
-        position_stats["Другая"] = 0
+        df[LAST_POSITION_COLUMN] = None
+        position_stats = dict.fromkeys(self._positions.keys(), 0)
+        position_stats[OTHER] = 0
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).strip()
             position_found = False
             for position, pattern in self._positions.items():
                 if re.search(pattern, text, re.IGNORECASE):
-                    df.at[i, "last position"] = position
+                    df.at[i, LAST_POSITION_COLUMN] = position
                     position_stats[position] += 1
                     position_found = True
                     break
 
             if not position_found:
-                df.at[i, "last position"] = "Другая"
-                position_stats["Другая"] += 1
+                df.at[i, LAST_POSITION_COLUMN] = OTHER
+                position_stats[OTHER] += 1
 
         self.logger.info("Статистика извлечения должностей:")
         for position, count in position_stats.items():
@@ -438,6 +476,72 @@ class CityExtractor(DataHandler):
             r"prepared for occasional business trips\s*\(.*\)",
         }
 
+    def _extract_city_info(
+        self, text_lower: str, df: pd.DataFrame, i: int, city_stats: dict
+    ) -> bool:
+        """Извлекает информацию о городе.
+
+        Аргументы:
+            text_lower: Текст в нижнем регистре.
+            df: DataFrame для заполнения.
+            i: Индекс строки.
+            city_stats: Словарь статистики городов.
+
+        Возвращает:
+            True если город найден, False иначе.
+        """
+        for city, pattern in self._cities.items():
+            if re.search(pattern, text_lower):
+                df.at[i, "city"] = city
+                city_stats[city] += 1
+                return True
+
+        df.at[i, "city"] = OTHER_CITY
+        city_stats[OTHER_CITY] += 1
+        return False
+
+    def _extract_relocation_info(self, text_lower: str, relocation_stats: dict) -> str:
+        """Извлекает информацию о готовности к переезду.
+
+        Аргументы:
+            text_lower: Текст в нижнем регистре.
+            relocation_stats: Словарь статистики переездов.
+
+        Возвращает:
+            Значение готовности к переезду.
+        """
+        if re.search(self._relocation_patterns["not_ready"], text_lower):
+            relocation_stats["нет"] += 1
+            return "нет"
+        elif re.search(self._relocation_patterns["ready"], text_lower):
+            relocation_stats["да"] += 1
+            return "да"
+        else:
+            relocation_stats[NOT_SPECIFIED_LOWERCASE] += 1
+            return None
+
+    def _extract_business_trip_info(
+        self, text_lower: str, business_trip_stats: dict
+    ) -> str:
+        """Извлекает информацию о готовности к командировкам.
+
+        Аргументы:
+            text_lower: Текст в нижнем регистре.
+            business_trip_stats: Словарь статистики командировок.
+
+        Возвращает:
+            Значение готовности к командировкам.
+        """
+        if re.search(self._business_trip_patterns["not_ready"], text_lower):
+            business_trip_stats["нет"] += 1
+            return "нет"
+        elif re.search(self._business_trip_patterns["ready"], text_lower):
+            business_trip_stats["да"] += 1
+            return "да"
+        else:
+            business_trip_stats[NOT_SPECIFIED_LOWERCASE] += 1
+            return None
+
     def handle(self, df: pd.DataFrame) -> pd.DataFrame:
         """Извлекает город и информацию о переезде/командировках.
 
@@ -454,49 +558,33 @@ class CityExtractor(DataHandler):
         df = df.copy()
         df["city"] = None
         df["relocation"] = None
-        df["business trips"] = None
+        df[BUSINESS_TRIPS] = None
 
-        city_stats = {city: 0 for city in self._cities.keys()}
-        city_stats["Другой город"] = 0
-        relocation_stats = {"да": 0, "нет": 0, "не указано": 0}
-        business_trip_stats = {"да": 0, "нет": 0, "не указано": 0}
+        city_stats = dict.fromkeys(self._cities.keys(), 0)
+        city_stats[OTHER_CITY] = 0
+        relocation_stats = {"да": 0, "нет": 0, NOT_SPECIFIED_LOWERCASE: 0}
+        business_trip_stats = {"да": 0, "нет": 0, NOT_SPECIFIED_LOWERCASE: 0}
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).strip()
             text_lower = text.lower()
 
             # Извлечение города
-            found_city = False
-            for city, pattern in self._cities.items():
-                if re.search(pattern, text_lower):
-                    df.at[i, "city"] = city
-                    city_stats[city] += 1
-                    found_city = True
-                    break
-
-            if not found_city:
-                df.at[i, "city"] = "Другой город"
-                city_stats["Другой город"] += 1
+            self._extract_city_info(text_lower, df, i, city_stats)
 
             # Извлечение информации о переезде
-            if re.search(self._relocation_patterns["not_ready"], text_lower):
-                df.at[i, "relocation"] = "нет"
-                relocation_stats["нет"] += 1
-            elif re.search(self._relocation_patterns["ready"], text_lower):
-                df.at[i, "relocation"] = "да"
-                relocation_stats["да"] += 1
-            else:
-                relocation_stats["не указано"] += 1
+            relocation_value = self._extract_relocation_info(
+                text_lower, relocation_stats
+            )
+            if relocation_value:
+                df.at[i, "relocation"] = relocation_value
 
             # Извлечение информации о командировках
-            if re.search(self._business_trip_patterns["not_ready"], text_lower):
-                df.at[i, "business trips"] = "нет"
-                business_trip_stats["нет"] += 1
-            elif re.search(self._business_trip_patterns["ready"], text_lower):
-                df.at[i, "business trips"] = "да"
-                business_trip_stats["да"] += 1
-            else:
-                business_trip_stats["не указано"] += 1
+            trip_value = self._extract_business_trip_info(
+                text_lower, business_trip_stats
+            )
+            if trip_value:
+                df.at[i, BUSINESS_TRIPS] = trip_value
 
         self.logger.info("Статистика по городам (топ-10):")
         for city, count in sorted(city_stats.items(), key=lambda x: x[1], reverse=True)[
@@ -653,6 +741,51 @@ class ExperienceExtractor(DataHandler):
         super().__init__()
         self.source_column = source_column
 
+    def _extract_years_and_months(self, text: str) -> tuple:
+        """Извлекает годы и месяцы из текста опыта.
+
+        Аргументы:
+            text: Исходный текст.
+
+        Возвращает:
+            Кортеж (годы, месяцы).
+        """
+        years = 0
+        months = 0
+        experience_pattern = r"опыт.*?работы.*?(\d+)\s*"
+
+        # Поиск лет в полном формате
+        years_match = re.search(experience_pattern + r"(?:лет|года?)", text)
+        if years_match:
+            try:
+                years = int(years_match.group(1))
+            except ValueError:
+                self.logger.debug(
+                    f"Не удалось преобразовать годы: {years_match.group(1)}"
+                )
+
+        # Поиск месяцев в полном формате
+        months_match = re.search(experience_pattern + r"(?:месяцев|мес|месяца?)", text)
+        if months_match:
+            try:
+                months = int(months_match.group(1))
+            except ValueError:
+                self.logger.debug(
+                    f"Не удалось преобразовать месяцы: {months_match.group(1)}"
+                )
+
+        # Поиск в коротком формате "N г. M м."
+        if months == 0:
+            short_match = re.search(r"опыт.*?(\d+)\s*[гг].*?(\d+)\s*[мм]", text)
+            if short_match:
+                try:
+                    years = int(short_match.group(1))
+                    months = int(short_match.group(2))
+                except (ValueError, IndexError):
+                    self.logger.debug(f"Не удалось распознать короткий формат: {text}")
+
+        return years, months
+
     def handle(self, df: pd.DataFrame) -> pd.DataFrame:
         """Извлекает общий опыт работы в месяцах.
 
@@ -669,44 +802,11 @@ class ExperienceExtractor(DataHandler):
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).lower()
-            years = 0
-            months = 0
 
-            # Поиск лет и месяцев в полном формате
-            years_match = re.search(r"опыт.*?работы.*?(\d+)\s*(?:лет|год[ау]?)", text)
-            if years_match:
-                try:
-                    years = int(years_match.group(1))
-                except ValueError:
-                    self.logger.debug(
-                        f"Не удалось преобразовать годы: {years_match.group(1)}"
-                    )
-
-            months_match = re.search(
-                r"опыт.*?работы.*?(\d+)\s*(?:месяцев|мес|месяца?)",
-                text,
-            )
-            if months_match:
-                try:
-                    months = int(months_match.group(1))
-                except ValueError:
-                    self.logger.debug(
-                        f"Не удалось преобразовать месяцы: {months_match.group(1)}"
-                    )
-
-            # Поиск в коротком формате "N г. M м."
-            if months == 0:
-                short_match = re.search(r"опыт.*?(\d+)\s*[гг].*?(\d+)\s*[мм]", text)
-                if short_match:
-                    try:
-                        years = int(short_match.group(1))
-                        months = int(short_match.group(2))
-                    except (ValueError, IndexError):
-                        self.logger.debug(
-                            f"Не удалось распознать короткий формат: {text}"
-                        )
-
+            # Извлечение лет и месяцев
+            years, months = self._extract_years_and_months(text)
             total_months = years * 12 + months
+
             if total_months > 0 and total_months <= 600:  # Максимум 50 лет
                 df.at[i, "experience"] = total_months
                 extracted_count += 1
@@ -732,8 +832,8 @@ class EducationExtractor(DataHandler):
         self.source_column = source_column
 
         self._education_levels = {
-            "Высшее": r"высшее|higher education",
-            "Другое": r"неоконченное высшее|среднее специальное|колледж|"
+            HIGHER_EDUCATION: r"высшее|higher education",
+            OTHER_EDUCATION: r"неоконченное высшее|среднее специальное|колледж|"
             r"среднее образование|special|college|incomplete|secondary education",
         }
 
@@ -751,20 +851,20 @@ class EducationExtractor(DataHandler):
         )
         df = df.copy()
         df["education"] = None
-        education_stats = {"Высшее": 0, "Другое": 0, "Не указано": 0}
+        education_stats = {HIGHER_EDUCATION: 0, OTHER_EDUCATION: 0, NOT_SPECIFIED: 0}
 
         for i, text in enumerate(df[self.source_column]):
             text = str(text).lower().strip()
 
             # Проверка "Другое" в первую очередь, так как оно более специфично
-            if re.search(self._education_levels["Другое"], text):
-                df.at[i, "education"] = "Другое"
-                education_stats["Другое"] += 1
-            elif re.search(self._education_levels["Высшее"], text):
-                df.at[i, "education"] = "Высшее"
-                education_stats["Высшее"] += 1
+            if re.search(self._education_levels[OTHER_EDUCATION], text):
+                df.at[i, "education"] = OTHER_EDUCATION
+                education_stats[OTHER_EDUCATION] += 1
+            elif re.search(self._education_levels[HIGHER_EDUCATION], text):
+                df.at[i, "education"] = HIGHER_EDUCATION
+                education_stats[HIGHER_EDUCATION] += 1
             else:
-                education_stats["Не указано"] += 1
+                education_stats[NOT_SPECIFIED] += 1
 
         self.logger.info(f"Статистика образования: {education_stats}")
         return super().handle(df)
@@ -801,13 +901,13 @@ class FeatureEngineering(DataHandler):
         # 2. Группировка городов по регионам/кластерам
         if "city" in df.columns:
             # Определение столичных городов
-            capital_cities = ["Москва", "Санкт-Петербург"]
+            capital_cities = [MOSCOW, SAINT_PETERSBURG]
             df["is_capital"] = df["city"].isin(capital_cities).astype(int)
 
             # Определение городов-миллионников
             million_cities = [
-                "Москва",
-                "Санкт-Петербург",
+                MOSCOW,
+                SAINT_PETERSBURG,
                 "Новосибирск",
                 "Екатеринбург",
                 "Казань",
@@ -831,17 +931,19 @@ class FeatureEngineering(DataHandler):
             )
 
         # 4. Индикатор соответствия желаемой и последней должности
-        if "position" in df.columns and "last position" in df.columns:
-            df["position_match"] = (df["position"] == df["last position"]).astype(int)
+        if "position" in df.columns and LAST_POSITION_COLUMN in df.columns:
+            df["position_match"] = (df["position"] == df[LAST_POSITION_COLUMN]).astype(
+                int
+            )
 
         # 5. Плотность занятости (сколько вариантов выбрано)
-        if "full time" in df.columns:
+        if FULL_TIME in df.columns:
             employment_cols = [
                 col
                 for col in df.columns
                 if col
                 in [
-                    "full time",
+                    FULL_TIME,
                     "part time",
                     "project work",
                     "work placement",
@@ -852,13 +954,13 @@ class FeatureEngineering(DataHandler):
                 df["employment_density"] = df[employment_cols].sum(axis=1)
 
         # 6. Плотность графика
-        if "full day" in df.columns:
+        if FULL_DAY in df.columns:
             schedule_cols = [
                 col
                 for col in df.columns
                 if col
                 in [
-                    "full day",
+                    FULL_DAY,
                     "shift schedule",
                     "flexible schedule",
                     "rotation based work",
@@ -937,6 +1039,36 @@ class MissingValueHandler(DataHandler):
         self.numeric_strategy = numeric_strategy
         self.categorical_strategy = categorical_strategy
 
+    def _get_numeric_fill_value(self, col_data) -> float:
+        """Определяет значение для заполнения пропусков числовых признаков.
+
+        Аргументы:
+            col_data: Данные столбца.
+
+        Возвращает:
+            Значение для заполнения.
+        """
+        if self.numeric_strategy == "median":
+            return col_data.median()
+        elif self.numeric_strategy == "mean":
+            return col_data.mean()
+        elif self.numeric_strategy == "mode":
+            return col_data.mode()[0] if not col_data.mode().empty else 0
+        return 0
+
+    def _get_categorical_fill_value(self, col_data) -> str:
+        """Определяет значение для заполнения пропусков категориальных признаков.
+
+        Аргументы:
+            col_data: Данные столбца.
+
+        Возвращает:
+            Значение для заполнения.
+        """
+        if self.categorical_strategy == "most_frequent":
+            return col_data.mode()[0] if not col_data.mode().empty else NOT_SPECIFIED
+        return NOT_SPECIFIED
+
     def handle(self, df: pd.DataFrame) -> pd.DataFrame:
         """Обрабатывает пропущенные значения.
 
@@ -964,15 +1096,7 @@ class MissingValueHandler(DataHandler):
         # Обработка числовых признаков
         for col in numeric_cols:
             if df[col].isnull().any():
-                if self.numeric_strategy == "median":
-                    fill_value = df[col].median()
-                elif self.numeric_strategy == "mean":
-                    fill_value = df[col].mean()
-                elif self.numeric_strategy == "mode":
-                    fill_value = df[col].mode()[0] if not df[col].mode().empty else 0
-                else:
-                    fill_value = 0
-
+                fill_value = self._get_numeric_fill_value(df[col])
                 df[col] = df[col].fillna(fill_value)
                 self.logger.debug(
                     f"  {col} (числовой): заполнено {df[col].isnull().sum()} пропусков"
@@ -981,15 +1105,7 @@ class MissingValueHandler(DataHandler):
         # Обработка категориальных признаков
         for col in categorical_cols:
             if df[col].isnull().any():
-                if self.categorical_strategy == "most_frequent":
-                    fill_value = (
-                        df[col].mode()[0] if not df[col].mode().empty else "Не указано"
-                    )
-                elif self.categorical_strategy == "constant":
-                    fill_value = "Не указано"
-                else:
-                    fill_value = "Не указано"
-
+                fill_value = self._get_categorical_fill_value(df[col])
                 df[col] = df[col].fillna(fill_value)
                 self.logger.debug(
                     f"  {col} (категориальный): заполнено {df[col].isnull().sum()} пропусков"
@@ -1147,12 +1263,12 @@ class SklearnPreprocessor(DataHandler):
             raise ValueError("Целевая переменная 'salary' не найдена в данных")
 
         # Выделяем целевую переменную
-        y = df["salary"].values
-        X_df = df.drop(columns=["salary"], errors="ignore")
+        y = df["salary"].to_numpy()
+        x_df = df.drop(columns=["salary"], errors="ignore")
 
         # Разделяем на числовые и категориальные признаки
-        numeric_features = X_df.select_dtypes(include=[np.number]).columns.tolist()
-        categorical_features = X_df.select_dtypes(exclude=[np.number]).columns.tolist()
+        numeric_features = x_df.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_features = x_df.select_dtypes(exclude=[np.number]).columns.tolist()
 
         self.logger.info(f"Числовых признаков: {len(numeric_features)}")
         self.logger.info(f"Категориальных признаков: {len(categorical_features)}")
@@ -1189,12 +1305,12 @@ class SklearnPreprocessor(DataHandler):
         )
 
         # Применяем преобразования
-        X_processed = preprocessor.fit_transform(X_df)
+        x_processed = preprocessor.fit_transform(x_df)
 
-        self.logger.info(f"Размер X после обработки: {X_processed.shape}")
+        self.logger.info(f"Размер X после обработки: {x_processed.shape}")
         self.logger.info(f"Размер y: {y.shape}")
 
-        return X_processed, y
+        return x_processed, y
 
 
 class DataPreparer(DataHandler):
@@ -1222,7 +1338,7 @@ class DataPreparer(DataHandler):
             raise ValueError(error_msg)
 
         # Разделяем на признаки и целевую переменную
-        y = df["salary"].values
+        y = df["salary"].to_numpy()
 
         self.logger.info("Целевая переменная (salary):")
         self.logger.info(f"  Размер: {y.shape}")
@@ -1230,18 +1346,18 @@ class DataPreparer(DataHandler):
         self.logger.info(f"  Медиана: {np.nanmedian(y):.2f}")
         self.logger.info(f"  Стандартное отклонение: {np.nanstd(y):.2f}")
 
-        X_df = df.drop(columns=["salary"], errors="ignore")
+        x_df = df.drop(columns=["salary"], errors="ignore")
 
         # Преобразуем категориальные признаки в числовые
-        X_df = pd.get_dummies(X_df)
+        x_df = pd.get_dummies(x_df)
 
-        X = X_df.values
+        x = x_df.to_numpy()
 
         self.logger.info("Матрица признаков X:")
-        self.logger.info(f"  Размер: {X.shape}")
-        self.logger.info(f"  Количество признаков: {X.shape[1]}")
+        self.logger.info(f"  Размер: {x.shape}")
+        self.logger.info(f"  Количество признаков: {x.shape[1]}")
 
-        return X, y
+        return x, y
 
 
 class DataProcessingPipeline:
@@ -1266,8 +1382,8 @@ class DataProcessingPipeline:
         self.logger.info("Построение пайплайна обработки данных")
 
         # Создаем обработчики
-        sex_extractor = SexExtractor("Пол, возраст")
-        age_extractor = AgeExtractor("Пол, возраст")
+        sex_extractor = SexExtractor(SEX_AGE_COLUMN)
+        age_extractor = AgeExtractor(SEX_AGE_COLUMN)
         salary_extractor = SalaryExtractor("ЗП")
         position_extractor = PositionExtractor("Ищет работу на должность:")
         last_position_extractor = LastPositionExtractor("Последеняя/нынешняя должность")
