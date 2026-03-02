@@ -54,11 +54,11 @@ class SalaryPredictor:
                 self.metadata.get("model_type", "Unknown"),
             )
 
-    def predict(self, X_data: str) -> list[float]:
+    def predict(self, x_data: str) -> list[float]:
         """Предсказывает зарплаты по входным признакам.
 
         Аргументы:
-            X_data: Массив признаков (`np.ndarray`) или путь к файлу с признаками.
+            x_data: Массив признаков (`np.ndarray`) или путь к файлу с признаками.
 
         Вернёт:
             Предсказанные значения зарплат.
@@ -70,12 +70,12 @@ class SalaryPredictor:
         if self.model is None:
             raise ValueError("Модель не загружена")
 
-        if isinstance(X_data, str):
-            if not os.path.exists(X_data):
-                raise FileNotFoundError(f"Файл с признаками не найден: {X_data}")
-            X_data = np.load(X_data, allow_pickle=True)
+        if isinstance(x_data, str):
+            if not os.path.exists(x_data):
+                raise FileNotFoundError(f"Файл с признаками не найден: {x_data}")
+            x_data = np.load(x_data, allow_pickle=True)
 
-        self.logger.debug("Начато предсказание | data.shape = %s", X_data.shape)
+        self.logger.debug("Начато предсказание | data.shape = %s", x_data.shape)
 
-        predictions = self.model.predict(X_data)
+        predictions = self.model.predict(x_data)
         return [float(value) for value in predictions]
